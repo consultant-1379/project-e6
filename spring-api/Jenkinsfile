@@ -1,0 +1,101 @@
+pipeline {
+  agent any
+  environment {
+    BUILD_DIR = "./spring-api"
+    SONAR_PROJECT_KEY = "spring-api"
+    SONAR_PROJECT_NAME = "project-e6"
+    SONAR_HOST = "http://localhost:9000"
+    SONAR_TOKEN = "sqp_01c790582e214fece97a7a6fdcbafd6afdbe8c6f"
+    IMAGE_NAME = "armdocker.rnd.ericsson.se/proj-sdd/benas-test/ben/spring-api"
+    VERSION = "${sh(script: 'cat ./spring-api/version', returnStdout: true).trim()}"
+  }
+  parameters {
+    booleanParam(name: 'IMAGE_PUSH', defaultValue: false, description: 'Push image?')
+  }
+  tools {
+    maven "apache-maven-3.9.3"
+  }
+  stages {
+    stage('Parallel Stages') {
+      parallel {
+        stage('BuildChain') {
+          stages {
+            stage('Clean') {
+              steps {
+                dir(BUILD_DIR) {
+                  sh "mvn clean"
+                }
+              }
+            }
+            stage('Test') {
+              steps {
+                dir(BUILD_DIR) {
+                  sh "mvn test"
+                }
+              }
+            }
+            stage('Build') {
+              steps {
+                dir(BUILD_DIR) {
+                  sh 'mvn install -B -DskipTests'
+                }
+              }
+            }
+            stage('UberSplit') {
+              steps {
+                dir(BUILD_DIR) {
+                  sh 'mkdir -p target/dependency'
+                  dir('target/dependency') {
+                    sh "jar -xf ../*jar"
+                  }
+                }
+              }
+            }
+          }
+        }
+        stage('CheckChain') {
+          stages {
+            stage('SonarQube') {
+              steps {
+                withSonarQubeEnv('LocalSonar') {
+                  dir(BUILD_DIR) {
+                    sh "mvn clean verify sonar:sonar \
+                        -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+                        -Dsonar.projectName=${SONAR_PROJECT_NAME} \
+                        -Dsonar.host.url=${SONAR_HOST} \
+                        -Dsonar.token=${SONAR_TOKEN} \
+                        -DskipTests"
+                  }
+                }
+              }
+            }
+            stage('QualityGate') {
+              steps {
+                timeout(time: 3, unit: 'MINUTES') {
+                  waitForQualityGate abortPipeline: true
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    stage('Dockerise') {
+      steps {
+        dir(BUILD_DIR) {
+          sh "docker build -t ${IMAGE_NAME}:${VERSION} -f Dockerfile ."
+        }
+      }
+    }
+    stage('Push') {
+      when {
+        expression { params.IMAGE_PUSH == true }
+      }
+      steps {
+        dir(BUILD_DIR) {
+          sh "docker push ${IMAGE_NAME}:${VERSION}"
+        }
+      }
+    }
+  }
+}

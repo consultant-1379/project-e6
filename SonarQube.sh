@@ -1,0 +1,1 @@
+docker run -d --name sonarqube -e SONAR_ES_BOOTSTRAP_CHECKS-DISABLE=true -p 9000:9000 sonarqube:10.1.0-community

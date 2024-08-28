@@ -1,0 +1,19 @@
+pipeline {
+  agent any
+  stages {
+    stage('Build') {
+      steps {
+
+        // change directory to the projet-e6-api directory
+        dir('./spring-api'){
+
+          // now build the docker image
+          sh 'docker build -t project-e6/api .'
+
+          // maybe add a way to push this built image to armdocker
+
+        }
+      }
+    }
+  }
+}

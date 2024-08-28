@@ -1,0 +1,36 @@
+pipeline {
+  agent any
+  environment {
+    BUILD_DIR = "./analysis"
+    IMAGE_NAME = "armdocker.rnd.ericsson.se/proj-sdd/benas-test/ben/python-analysis"
+    IMAGE_VERSION = "1.1.1"
+  }
+  tools {
+    maven "apache-maven-3.9.3"
+  }
+  stages {
+    stage('SonarQube') {
+      steps {
+        withSonarQubeEnv('PythonSonar') {
+          dir(BUILD_DIR) {
+            sh "sonar-scanner -D'sonar.projectKey=python-analysis' -D'sonar.sources=.' -D'sonar.host.url=http://localhost:9000' -D'sonar.token=sqp_c152983646776cc2cddf2f0a6d0a3c24fdd74126'"
+          }
+        }
+      }
+    }
+    stage('QualityGate') {
+      steps {
+        timeout(time: 3, unit: 'MINUTES') {
+          waitForQualityGate abortPipeline: true
+        }
+      }
+    }
+    stage('Dockerise') {
+      steps {
+        dir(BUILD_DIR) {
+          sh "docker build -t ${IMAGE_NAME} -f Dockerfile ."
+        }
+      }
+    }
+  }
+}

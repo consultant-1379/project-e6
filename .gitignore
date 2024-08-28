@@ -1,0 +1,7 @@
+**/.idea
+# temp ignore unsure
+spring-api/mvnw
+spring-api/mvnw.cmd
+analysis/analysisenv
+analysis/backup_data
+analysis/__pycache__

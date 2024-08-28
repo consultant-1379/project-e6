@@ -1,0 +1,46 @@
+# Service YAML definition
+apiVersion: v1                                               
+kind: Service                                                
+metadata:
+  name: python-backend-service                                 # Name of this Service
+  labels:                                                    # Labels that will be applied to this Service
+    app: python-appserver
+  namespace: default
+spec:
+  type: NodePort                                             # The service will be exposed by opening a Port on each node and proxying it. 
+  ports:
+    - port: 5000
+      targetPort: 5000
+  selector:                                                  # Pods with label `python-appserver` will be exposed
+    app: python-appserver
+
+---
+
+apiVersion: apps/v1                                          
+kind: Deployment                                             
+metadata:
+  name: python-backend-deploy                                  # Name of this Deployment
+  labels:                                                    # Labels that will be applied to this Deployment
+    app: python-appserver
+  namespace: default
+spec:
+  replicas: 1                                                # 1 pod to run in this Deployment
+  selector:
+    matchLabels:                                             # This Deployment applies to any pods that match the specified labels -> 'python-appserver'
+      app: python-appserver
+    
+  template:                                                  # Template used for making the pods in this Deployment
+    metadata:
+      name: python-backend-pod
+      labels:                                                # The python-appserver label is attached to each pod in this Deployment
+        app: python-appserver
+    spec:                                                    # Spec for the containers that will be run in the Pods
+      containers:
+        - name: python-backend
+          image: project6/python-mongo:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5000                            # Container port exposed
+          env:                                               # This pod has the following environment variables
+            - name: MONGO_URL
+              value: mongodb://mongo:27017/project6db

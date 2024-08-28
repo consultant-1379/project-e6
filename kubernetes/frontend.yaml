@@ -1,0 +1,46 @@
+# Service YAML definition
+apiVersion: v1                                               
+kind: Service                                                
+metadata:
+  name: frontend-service                                 # Name of this Service
+  labels:                                                    # Labels that will be applied to this Service
+    app: frontend-client
+  namespace: default
+spec:
+  type: NodePort                                             # The service will be exposed by opening a Port on each node and proxying it. 
+  ports:
+    - port: 3000
+      targetPort: 3000
+  selector:                                                  # Pods with label `frontend-client` will be exposed
+    app: frontend-client
+
+---
+
+apiVersion: apps/v1                                          
+kind: Deployment                                             
+metadata:
+  name: frontend-deploy                                  # Name of this Deployment
+  labels:                                                    # Labels that will be applied to this Deployment
+    app: frontend-client
+  namespace: default
+spec:
+  replicas: 1                                                # 1 pod to run in this Deployment
+  selector:
+    matchLabels:                                             # This Deployment applies to any pods that match the specified labels -> 'frontend-client'
+      app: frontend-client
+    
+  template:                                                  # Template used for making the pods in this Deployment
+    metadata:
+      name: frontend-pod
+      labels:                                                # The frontend-client label is attached to each pod in this Deployment
+        app: frontend-client
+    spec:                                                    # Spec for the containers that will be run in the Pods
+      containers:
+        - name: frontend
+          image: project6/frontend:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 3000                            # Container port exposed
+          # env:                                               # This pod has the following environment variables
+          #   - name: MONGO_URL
+          #     value: mongodb://mongo:27017/project6db

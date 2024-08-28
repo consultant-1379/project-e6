@@ -1,0 +1,78 @@
+{
+  "_id": "LMI_KOHNO17",
+  "data": {
+    "eric-oss-sftp-filetrans": {
+      "eric-oss-sftp-filetrans-02": {
+        "2023": {
+          "7": {
+            "31": {
+              "Duplicates": "0",
+              "Missing_Msg": "0",
+              "Total_Logs": "151",
+              "Total_Errors": "0",
+              "Total_Warning": "0",
+              "Total_Info": "0"
+            }
+          }
+        }
+      },
+      "eric-oss-sftp-filetrans-03": {
+        "2023": {
+          "7": {
+            "31": {
+              "Duplicates": "0",
+              "Missing_Msg": "0",
+              "Total_Logs": "500",
+              "Total_Errors": "0",
+              "Total_Warning": "0",
+              "Total_Info": "0"
+            }
+          }
+        }
+      },
+      "eric-oss-sftp-filetrans-ran-2-01": {
+        "2023": {
+          "7": {
+            "31": {
+              "Duplicates": "0",
+              "Missing_Msg": "0",
+              "Total_Logs": "64",
+              "Total_Errors": "0",
+              "Total_Warning": "1",
+              "Total_Info": "5"
+            }
+          }
+        }
+      },
+      "eric-oss-pm-stats-calculator-00": {
+        "2023": {
+          "7": {
+            "31": {
+              "Duplicates": "0",
+              "Missing_Msg": "0",
+              "Total_Logs": "381",
+              "Total_Errors": "0",
+              "Total_Warning": "0",
+              "Total_Info": "10"
+            }
+          }
+        }
+      },
+      "eric-oss-enm-notification-adapter-02": {
+        "2023": {
+          "7": {
+            "31": {
+              "Duplicates": "0",
+              "Missing_Msg": "0",
+              "Total_Logs": "104",
+              "Total_Errors": "0",
+              "Total_Warning": "1",
+              "Total_Info": "0"
+            }
+          }
+        }
+      }
+    }
+  }
+}
+

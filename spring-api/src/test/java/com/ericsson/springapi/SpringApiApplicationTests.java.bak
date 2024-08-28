@@ -1,0 +1,108 @@
+package com.ericsson.springapi;
+
+import com.ericsson.springapi.service.ProductServiceImpl;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+public class SpringApiApplicationTestsb {
+
+	@Autowired
+	private TestRestTemplate restTemplate;
+
+	static int id;
+
+ProductServiceImpl psi = new ProductServiceImpl();
+	@Test
+	@Order(1)
+	public void testfindApplicationsInProduct() throws JsonProcessingException {
+
+
+		TestRestTemplate restTemplate = new TestRestTemplate();
+		String expectedOutput = "eric-oss-sftp-filetrans";
+
+		// Send a GET request to the API
+		String apiUrl = "http://localhost:8081/products/LMI_KOHNO17/applications";
+		String apiResponse = restTemplate.getForObject(apiUrl, String.class);
+
+// Parse the JSON response
+		ObjectMapper objectMapper = new ObjectMapper();
+		JsonNode jsonNode = objectMapper.readTree(apiResponse);
+
+// Get the response as a string
+		String content = jsonNode.get(0).asText();
+
+// Compare the extracted content with the expected value
+		assertEquals(expectedOutput, content);
+
+
+	}
+
+	@Test
+	@Order(2)
+	public void testfindInstancesOfApplicationInProduct() throws JsonProcessingException {
+
+		String expectedOutput = "[\"eric-oss-enm-notification-adapter-02\",\"eric-oss-sftp-filetrans-03\",\"eric-oss-sftp-filetrans-ran-2-01\",\"eric-oss-pm-stats-calculator-00\",\"eric-oss-sftp-filetrans-02\"]";
+		// Send a GET request to the API
+		String apiUrl = "http://localhost:8081/products/LMI_KOHNO17/eric-oss-sftp-filetrans/instances";
+		String apiResponse = restTemplate.getForObject(apiUrl, String.class);
+
+	// Compare
+		assertEquals(expectedOutput, apiResponse);
+	}
+
+
+
+
+	@Test
+	@Order(3)
+	public void testfindSpecificInstanceMetricsInProduct() {
+
+		String expectedOutput = "{\"eric-oss-enm-notification-adapter-02\":{\"Missing_Msg\":\"0\",\"Duplicates\":\"0\",\"Total_Info\":\"0\",\"Total_Errors\":\"0\",\"Total_Logs\":\"104\",\"Total_Warning\":\"1\"}}";
+		// Send a GET request to the API
+		String apiUrl = "http://localhost:8081/products/LMI_KOHNO17/eric-oss-sftp-filetrans/eric-oss-enm-notification-adapter-02/2023-7-31";
+		String apiResponse = restTemplate.getForObject(apiUrl, String.class);
+
+		// Compare
+		assertEquals(expectedOutput, apiResponse);
+	}
+
+
+	@Test
+	@Order(4)
+	public void testfindMetricsForEachInstanceInApplicationInProduct() {
+
+
+		String expectedOutput = "{\"eric-oss-enm-notification-adapter-02\":{\"Missing_Msg\":\"0\",\"Duplicates\":\"0\",\"Total_Info\":\"0\",\"Total_Errors\":\"0\",\"Total_Logs\":\"104\",\"Total_Warning\":\"1\"},\"eric-oss-sftp-filetrans-03\":{\"Missing_Msg\":\"0\",\"Duplicates\":\"0\",\"Total_Info\":\"0\",\"Total_Errors\":\"0\",\"Total_Logs\":\"500\",\"Total_Warning\":\"0\"},\"eric-oss-sftp-filetrans-02\":{\"Missing_Msg\":\"0\",\"Duplicates\":\"0\",\"Total_Info\":\"0\",\"Total_Errors\":\"0\",\"Total_Logs\":\"151\",\"Total_Warning\":\"0\"},\"eric-oss-sftp-filetrans-ran-2-01\":{\"Missing_Msg\":\"0\",\"Duplicates\":\"0\",\"Total_Info\":\"5\",\"Total_Errors\":\"0\",\"Total_Logs\":\"64\",\"Total_Warning\":\"1\"},\"eric-oss-pm-stats-calculator-00\":{\"Missing_Msg\":\"0\",\"Duplicates\":\"0\",\"Total_Info\":\"10\",\"Total_Errors\":\"0\",\"Total_Logs\":\"381\",\"Total_Warning\":\"0\"}}";
+		String apiUrl = "http://localhost:8081/products/LMI_KOHNO17/eric-oss-sftp-filetrans/metrics/2023-7-31";
+		String apiResponse = restTemplate.getForObject(apiUrl, String.class);
+
+		// Compare
+		assertEquals(expectedOutput, apiResponse);
+	}
+	@Test
+	@Order(5)
+	void testgetProductById() {
+//ProductServiceImpl psi = new ProductServiceImpl();
+//
+//String product = String.valueOf(psi.getProductById("LMI_KOHNO1"));
+//
+//
+//		assertEquals(product,"test");
+//
+
+	}
+
+
+}

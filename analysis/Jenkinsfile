@@ -1,0 +1,52 @@
+pipeline {
+  agent any
+  environment {
+    BUILD_DIR = "./analysis"
+    SONAR_PROJECT_KEY = "python-analysis"
+    SONAR_HOST = "http://localhost:9000"
+    SONAR_TOKEN = "sqp_c152983646776cc2cddf2f0a6d0a3c24fdd74126"
+    IMAGE_NAME = "armdocker.rnd.ericsson.se/proj-sdd/benas-test/ben/python-analysis"
+    VERSION = "${sh(script: 'cat ./analysis/version', returnStdout: true).trim()}"
+  }
+  parameters {
+    booleanParam(name: 'IMAGE_PUSH', defaultValue: false, description: 'Push image?')
+  }
+  tools {
+    maven "apache-maven-3.9.3"
+  }
+  stages {
+    stage('SonarQube') {
+      steps {
+        withSonarQubeEnv('PythonSonar') {
+          dir(BUILD_DIR) {
+            sh "sonar-scanner -D'sonar.projectKey=${SONAR_PROJECT_KEY}' -D'sonar.sources=.' -D'sonar.host.url=${SONAR_HOST}' -D'sonar.token=${SONAR_TOKEN}'"
+          }
+        }
+      }
+    }
+    stage('QualityGate') {
+      steps {
+        timeout(time: 3, unit: 'MINUTES') {
+          waitForQualityGate abortPipeline: true
+        }
+      }
+    }
+    stage('Dockerise') {
+      steps {
+        dir(BUILD_DIR) {
+          sh "docker build -t ${IMAGE_NAME}:${VERSION} -f Dockerfile ."
+        }
+      }
+    }
+    stage('Push') {
+      when {
+        expression { params.IMAGE_PUSH == true }
+      }
+      steps {
+        dir(BUILD_DIR) {
+          sh "docker push ${IMAGE_NAME}:${VERSION}"
+        }
+      }
+    }
+  }
+}

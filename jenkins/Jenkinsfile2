@@ -1,0 +1,64 @@
+pipeline {
+  agent any
+  environment {
+    BUILD_DIR = "./spring-api"
+    IMAGE_NAME = "armdocker.rnd.ericsson.se/proj-sdd/benas-test/ben/spring-api"
+    IMAGE_VERSION = "1.1.1"
+  }
+  tools {
+    maven "apache-maven-3.9.3"
+  }
+  stages {
+    stage('SonarQube') {
+      steps {
+        withSonarQubeEnv('LocalSonar') {
+          dir(BUILD_DIR) {
+            sh "mvn clean verify sonar:sonar \
+                -Dsonar.projectKey=project-e6 \
+                -Dsonar.projectName='project-e6' \
+                -Dsonar.host.url=http://localhost:9000 \
+                -Dsonar.token=sqp_01c790582e214fece97a7a6fdcbafd6afdbe8c6f"
+          }
+        }
+      }
+    }
+    stage('QualityGate') {
+      steps {
+        timeout(time: 3, unit: 'MINUTES') {
+          waitForQualityGate abortPipeline: true
+        }
+      }
+    }
+    stage('Build') {
+      steps {
+        dir(BUILD_DIR) {
+          sh 'mvn clean install -B -DskipTests'
+        }
+      }
+    }
+    stage('Test') {
+      steps {
+        dir(BUILD_DIR) {
+          sh 'mvn test'
+        }
+      }
+    }
+    stage('UberSplit') {
+      steps {
+        dir(BUILD_DIR) {
+          sh 'mkdir -p target/dependency'
+          dir('target/dependency') {
+            sh "jar -xf ../*jar"
+          }
+        }
+      }
+    }
+    stage('Dockerise') {
+      steps {
+        dir(BUILD_DIR) {
+          sh "docker build -t ${IMAGE_NAME} -f Dockerfile ."
+        }
+      }
+    }
+  }
+}
